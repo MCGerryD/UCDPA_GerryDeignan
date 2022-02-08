@@ -7,6 +7,7 @@
 import requests
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Dublin Bikes
 # Dublin Bikes historic data is held in CSV format and does not require a password.
@@ -40,9 +41,11 @@ print(initial_df.describe())
 # To determine number of bikes used each day I need to extract the date from the Time field
 # Using Pandas DatetimeIndex to extract its and store in DATE
 initial_df['DATE'] = pd.DatetimeIndex(initial_df['TIME']).date
+initial_df['DATE'] = pd.to_datetime(initial_df['DATE'], format='%Y-%m-%d')
 # Check new field is as expected
 print(initial_df['DATE'])
 print(initial_df.head())
+print(initial_df.info())
 
 #Sort the dataframe so that I can get the final sum of bike usage for each day (end of day will have the cumulative sum)
 initial_df = initial_df.sort_values(['STATION ID', 'TIME'], ascending=(True, True))
@@ -55,5 +58,12 @@ print(initial_df.head())
 # Each time the difference is negative will be a proxy for the number of bikes taken in that
 # 5 minute window. I am going to assume that the sum of  these negative values for an entire day
 # will be the number of bikes taken in that day
-initial_df['Interactions']=initial_df.groupby(['STATION ID', 'DATE'])['AVAILABLE BIKES'].diff().fillna(0)
+initial_df['Interactions'] = initial_df.groupby(['STATION ID', 'DATE'])['AVAILABLE BIKES'].diff().fillna(0)
+# Sense Check values
 print(initial_df.head())
+print(initial_df['DATE'].max())
+print(initial_df['Interactions'].max())
+print(initial_df['Interactions'].min())
+
+
+
