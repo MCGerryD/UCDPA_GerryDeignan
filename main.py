@@ -87,3 +87,28 @@ summary_df = initial_df.groupby(['STATION ID', 'DATE']).apply(filter_last_timeva
 print(summary_df.head())
 print(summary_df.info())
 print(summary_df.describe())
+# Reset Index values
+summary_df = summary_df.reset_index(level=0)
+print(summary_df.head())
+print(summary_df.info())
+print(summary_df.describe())
+
+
+# **********************************************************************************************************
+# Weather Data
+# Read in the Historical Weather Data to capture Rainfall and Temperatures
+# This data is manually downloaded from https://www.met.ie/climate/available-data/historical-data
+# The future forecast data is available via API. That will be used later in the model
+parse_dates_w = ['date']
+initial_weather = pd.read_csv("dly3923.csv", parse_dates=parse_dates_w, dayfirst=True)
+initial_weather['DATE'] = pd.DatetimeIndex(initial_weather['date']).date
+print(initial_weather.head())
+print(initial_weather.info())
+print(initial_weather.describe())
+
+
+#Check the MetEireann API for weather forecast info
+#Co-ordinates for Dublin City Centre taken from Google Maps
+#response = requests.get("http://metwdb-openaccess.ichec.ie/metno-wdb2ts/locationforecast?lat=53.348366;long=-6.254815")
+#print(response.status_code)
+#print(response.text)
