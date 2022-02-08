@@ -96,15 +96,25 @@ print(summary_df.describe())
 
 # **********************************************************************************************************
 # Weather Data
-# Read in the Historical Weather Data to capture Rainfall and Temperatures
+# Read in the Historical Weather Data to capture Rainfall and Temperatures.
+# I have selected Dublin City Centre (Merrion Row) as the location for the data.
 # This data is manually downloaded from https://www.met.ie/climate/available-data/historical-data
+# For the Period that I am analysing the bike data (2019) I have Rainfall (rain mm),
+# Max Temp (maxt C) & Min Temp (mint C) to use.
 # The future forecast data is available via API. That will be used later in the model
 parse_dates_w = ['date']
 initial_weather = pd.read_csv("dly3923.csv", parse_dates=parse_dates_w, dayfirst=True)
+# Making Date the same as that on the Bikes data so they can bve merged on that as a key
 initial_weather['DATE'] = pd.DatetimeIndex(initial_weather['date']).date
 print(initial_weather.head())
 print(initial_weather.info())
 print(initial_weather.describe())
+
+
+
+
+
+
 
 
 #Check the MetEireann API for weather forecast info
