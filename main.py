@@ -8,6 +8,7 @@ import requests
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import re
 
 # Dublin Bikes
 # Dublin Bikes historic data is held in CSV format and does not require a password.
@@ -102,17 +103,25 @@ print(summary_df.describe())
 # For the Period that I am analysing the bike data (2019) I have Rainfall (rain mm),
 # Max Temp (maxt C) & Min Temp (mint C) to use.
 # The future forecast data is available via API. That will be used later in the model
+
 parse_dates_w = ['date']
-initial_weather = pd.read_csv("dly3923.csv", parse_dates=parse_dates_w, dayfirst=True)
+initial_weather = pd.read_csv("dly3923.csv", parse_dates=parse_dates_w,  dayfirst=True, skip_blank_lines=True)
 # Making Date the same as that on the Bikes data so they can bve merged on that as a key
 initial_weather['DATE'] = pd.DatetimeIndex(initial_weather['date']).date
+initial_weather['DATE'] = pd.to_datetime(initial_weather['DATE'], format='%Y-%m-%d')
 print(initial_weather.head())
 print(initial_weather.info())
 print(initial_weather.describe())
 
 
 
-
+# (2. Merge Historic Bike and Weather data)
+# Merge the summary data with the weather data on DATE and left join to only include values that exist on Bikes data
+# This will discard the obsolete weather data
+merged_data = pd.merge(summary_df, initial_weather, how='left', on='DATE')
+print(merged_data.head())
+print(merged_data.info())
+print(merged_data.describe())
 
 
 
