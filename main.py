@@ -77,3 +77,13 @@ print(initial_df['Check_Neg'].min())
 initial_df['Num_Taken']=initial_df.groupby(['STATION ID', 'DATE'])['Check_Neg'].cumsum().fillna(0)
 print(initial_df['Num_Taken'])
 
+# Filtering the dataframe to create Summary_DF that will have just the last line by Station ID and Date
+def filter_last_timevalue(g):
+        return g.groupby(['STATION ID', 'DATE']).last().agg({'Num_Taken':'sum'})
+
+summary_df = initial_df.groupby(['STATION ID', 'DATE']).apply(filter_last_timevalue)
+
+#Sense check
+print(summary_df.head())
+print(summary_df.info())
+print(summary_df.describe())
