@@ -65,5 +65,15 @@ print(initial_df['DATE'].max())
 print(initial_df['Interactions'].max())
 print(initial_df['Interactions'].min())
 
+# I only want to count the negative values in Interactions as positives represent bikes being returned
+# This will create a new field called Check_Neg that will hold the count of negatives converted to positive
+initial_df['Check_Neg'] = np.where(initial_df['Interactions'] < 0,initial_df['Interactions']*-1, 0 )
+# Sense check
+print(initial_df['Check_Neg'].max())
+print(initial_df['Check_Neg'].min())
 
+# Num_Taken will be the number of bikes taken by Station per day. I am using the CumSum to work out total
+# Using this means that the last line per station, per day will have the total
+initial_df['Num_Taken']=initial_df.groupby(['STATION ID', 'DATE'])['Check_Neg'].cumsum().fillna(0)
+print(initial_df['Num_Taken'])
 
