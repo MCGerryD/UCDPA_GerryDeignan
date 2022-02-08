@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import re
+import seaborn as sns
+from scipy import stats
 
 # Dublin Bikes
 # Dublin Bikes historic data is held in CSV format and does not require a password.
@@ -125,9 +127,24 @@ print(merged_data.describe())
 
 
 
-
 #Check the MetEireann API for weather forecast info
 #Co-ordinates for Dublin City Centre taken from Google Maps
 #response = requests.get("http://metwdb-openaccess.ichec.ie/metno-wdb2ts/locationforecast?lat=53.348366;long=-6.254815")
 #print(response.status_code)
 #print(response.text)
+
+#Do a trend graph showing the total usage in the period (Matplotlib)
+plt.figure(0)
+plt.title("Number of Bikes Used per Day")
+plt.xlabel("Date")
+plt.ylabel("Number Used")
+plt.plot('DATE', 'Num_Taken', data=merged_data, )
+plt.show()
+
+#Show the correlation of Rainfall to Bike Usage along with printing the R Value (Seaborn)
+slope, intercept, r_value, p_value, std_err = stats.linregress(merged_data['rain'],merged_data['Num_Taken'])
+plt.figure(1)
+chart = sns.regplot(merged_data['rain'],merged_data['Num_Taken'])
+chart.set(title='Number of Bikes Taken vs Rainfall(mm)',ylabel='Number Taken',xlabel='Rainfall(mm)')
+#Print the R Value
+print('The linear coefficient is',r_value)
