@@ -86,12 +86,17 @@ def filter_last_timevalue(g):
 
 summary_df = initial_df.groupby(['STATION ID', 'DATE']).apply(filter_last_timevalue)
 
+
 #Sense check
 print(summary_df.head())
 print(summary_df.info())
 print(summary_df.describe())
 # Reset Index values
 summary_df = summary_df.reset_index(level=0)
+
+# Creating a Average of Num_taken value across all stations for each day
+# This will help me categorise in to a Low, Medium or High later
+summary_df['Daily Average'] = summary_df.groupby('DATE')['Num_Taken'].mean()
 print(summary_df.head())
 print(summary_df.info())
 print(summary_df.describe())
@@ -114,6 +119,9 @@ initial_weather['DATE'] = pd.to_datetime(initial_weather['DATE'], format='%Y-%m-
 print(initial_weather.head())
 print(initial_weather.info())
 print(initial_weather.describe())
+
+
+
 
 
 
@@ -140,11 +148,3 @@ plt.xlabel("Date")
 plt.ylabel("Number Used")
 plt.plot('DATE', 'Num_Taken', data=merged_data, )
 plt.show()
-
-#Show the correlation of Rainfall to Bike Usage along with printing the R Value (Seaborn)
-slope, intercept, r_value, p_value, std_err = stats.linregress(merged_data['rain'],merged_data['Num_Taken'])
-plt.figure(1)
-chart = sns.regplot(merged_data['rain'],merged_data['Num_Taken'])
-chart.set(title='Number of Bikes Taken vs Rainfall(mm)',ylabel='Number Taken',xlabel='Rainfall(mm)')
-#Print the R Value
-print('The linear coefficient is',r_value)
