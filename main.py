@@ -88,8 +88,8 @@ initial_df['Check_Neg'] = np.where(initial_df['Interactions'] < 0,initial_df['In
 print(initial_df['Check_Neg'].max())
 print(initial_df['Check_Neg'].min())
 
-# Num_Taken will be the number of bikes taken by Station per day. I am using the CumSum to work out total
-# Using this means that the last line per station, per day will have the total taen
+# Num_Taken will be the number of bikes taken per day. I am using the CumSum to work out total
+# Using this means that the last  per day will have the total taen
 initial_df['Num_Taken']=initial_df.groupby(['DATE'])['Check_Neg'].cumsum().fillna(0)
 print(initial_df['Num_Taken'])
 
@@ -348,6 +348,17 @@ print(new_Forecast_df.info())
 print(new_Forecast_df['precipitation.@value'])
 print(new_Forecast_df['temperature.@value'])
 
+
+new_Forecast_df['time'] = new_Forecast_df['@from']
+new_Forecast_df['rain'] = new_Forecast_df['precipitation.@value'].shift(-1) #Shfted up one to align with Temp
+new_Forecast_df['maxt'] = new_Forecast_df['temperature.@value']
+#Drop empty or redundant row. Chose blank temperaturefield arbitrarily
+new_Forecast_df = new_Forecast_df.dropna(axis=0, subset=['temperature.@unit'])
+
+
+
+
+
 # As there is only one Temperature value in the weather API and I have Min and Max on the historc data I will drop one of them from the model.
 # Recreating the multi model here with the one that had the highest correlation which was Max Temp
 
@@ -361,3 +372,7 @@ mul_reg_model = LinearRegression()
 mul_reg_model.fit(X,y)
 print("Multi Intercept is ", mul_reg_model.intercept_) #Multi Intercept is  7067.568381356538
 print("Multi Coefficient is ", mul_reg_model.coef_) #Multi Coefficient is  [-103.62871156   34.16545022]
+
+#Create a new field call Predictions that will have the predicted number of bikes used based on the multi regression model.
+new_Forecast_df["predictions"] = new_Forecast_df[["rain", "maxt"]].apply(lambda s: mul_reg_model.predict(s.values[None])[0], axis=1)
+new_Forecast_df.to_csv('new_Forecast_df.csv')
