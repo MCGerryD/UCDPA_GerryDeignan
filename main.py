@@ -12,6 +12,10 @@ import re
 import seaborn as sns
 from scipy import stats
 from sklearn.linear_model import LinearRegression
+import json
+import xmltodict
+from datetime import datetime
+import dateutil.parser
 
 # Dublin Bikes
 # Dublin Bikes historic data is held in CSV format and does not require a password.
@@ -216,16 +220,13 @@ print('The linear coefficient for weekends is',r_value)
 #plt.show()
 
 
-#Check the MetEireann API for weather forecast info
-#Co-ordinates for Dublin City Centre taken from Google Maps
-#response = requests.get("http://metwdb-openaccess.ichec.ie/metno-wdb2ts/locationforecast?lat=53.348366;long=-6.254815")
-#print(response.status_code)
-#print(response.text)
+
 
 print(weekdays_only.head())
 print(weekdays_only.info())
 print(weekdays_only.describe())
 # Building the model
+# Using Simple Regression where each Feature variable is used on its own
 # Setting X to all features in the dataset except the response variable Num_taken and others that I'm not interested in
 x = weekdays_only.drop(['Num_Taken', 'ind', 'ind.1', 'ind.2', 'gmin', 'soil'], axis=1)
 # Y variable is the response variable Num_Taken. This is what I want to predict eventually
@@ -257,7 +258,7 @@ print("Coefficient for Rain is ", lm.coef_) #Coefficient for Rain is  [-108.5451
 Prediction_using_rain = pd.DataFrame({'rain':[10]})
 Prediction_using_rain.head()
 print(lm.predict((Prediction_using_rain)))
-
+#Plot Least Square for Rain
 X_new = pd.DataFrame({'rain': [weekdays_only.rain.min(), weekdays_only.rain.max()]})
 preds = lm.predict(X_new)
 print(preds)
@@ -280,7 +281,7 @@ Prediction_using_maxt = pd.DataFrame({'maxt':[5]})
 Prediction_using_maxt.head()
 print(lm.predict((Prediction_using_maxt)))
 
-
+#Plot Least Square for Maxt
 X_new = pd.DataFrame({'maxt': [weekdays_only.maxt.min(), weekdays_only.maxt.max()]})
 preds = lm.predict(X_new)
 print(preds)
@@ -300,17 +301,42 @@ print("Coefficient for mint is ", lm.coef_) #Coefficient for mint is  [-1.962882
 Prediction_using_mint = pd.DataFrame({'mint':[25]})
 Prediction_using_mint.head()
 print(lm.predict((Prediction_using_mint)))
+#Plot Least Square for Mint
 X_new = pd.DataFrame({'mint': [weekdays_only.mint.min(), weekdays_only.mint.max()]})
 preds = lm.predict(X_new)
 print(preds)
 weekdays_only.plot(kind='scatter', x='mint',y='Num_Taken')
 plt.plot(X_new, preds, c='red', linewidth=2)
 plt.show()
-# Plotting the least Squares Line to see the regression visually
+
+
+# Now going to run all Feature Variables together in Multiple Linear Regression and compare results
+# Predict using a value for Rainfall
+feature_cols = ['rain', 'maxt', 'mint']
+X = weekdays_only[feature_cols]
+y = weekdays_only.Num_Taken
+mul_reg_model = LinearRegression()
+mul_reg_model.fit(X,y)
+print("Multi Intercept is ", mul_reg_model.intercept_) #Multi Intercept is  7034.303677332806
+print("Multi Coefficient is ", mul_reg_model.coef_) #Multi Coefficient is  [-98.5842662   58.47834037 -42.37134541]
 
 
 
+#Check the MetEireann API for weather forecast info
+#Co-ordinates for Dublin City Centre taken from Google Maps
+response = requests.get("http://metwdb-openaccess.ichec.ie/metno-wdb2ts/locationforecast?lat=53.348366;long=-6.254815")
+print(response.status_code)
+print(response.text)
 
-
+# Weather data is actuall in XML
+# I found this converter from ML to Dictionary to help me out
+dict_data = xmltodict.parse(response.content)
+# Convert to dataframe
+Forecast_df = pd.DataFrame(dict_data['weatherdata']['product']['time'])
+# Breakout nested Dictionarys (location) into columns
+# source: https://stackoverflow.com/questions/38231591/split-explode-a-column-of-dictionaries-into-separate-columns-with-pandas
+new_Forecast_df = pd.concat([Forecast_df.drop(['location'], axis = 1), pd.json_normalize(Forecast_df['location'])], axis= 1)
+print(new_Forecast_df.head())
+print(new_Forecast_df.info())
 
 
