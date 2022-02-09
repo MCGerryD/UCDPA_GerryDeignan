@@ -12,7 +12,6 @@ import re
 import seaborn as sns
 from scipy import stats
 from sklearn.linear_model import LinearRegression
-import json
 import xmltodict
 from datetime import datetime
 import dateutil.parser
@@ -177,9 +176,6 @@ weekdays_only = merged_data[~myMask]
 weekends_only = merged_data[myMask]
 
 
-
-
-
 # Check Weekdays now
 plt.figure(2)
 plt.title("Number of Bikes Used per WeekDay")
@@ -193,8 +189,6 @@ plt.xlabel("Date")
 plt.ylabel("Number Used")
 plt.plot('DATE', 'Num_Taken', data=weekends_only, )
 #plt.show()
-
-
 
 
 weekdays_only.to_csv('weekdays_only.csv')
@@ -218,8 +212,6 @@ chart.set(title='Number of Bikes Taken on Weekends vs Rainfall(mm)',ylabel='Numb
 #Print the R Value
 print('The linear coefficient for weekends is',r_value)
 #plt.show()
-
-
 
 
 print(weekdays_only.head())
@@ -265,7 +257,6 @@ print(preds)
 weekdays_only.plot(kind='scatter', x='rain',y='Num_Taken')
 plt.plot(X_new, preds, c='red', linewidth=2)
 plt.show()
-
 
 
 # Predict using a value for Max Temp
@@ -321,7 +312,6 @@ print("Multi Intercept is ", mul_reg_model.intercept_) #Multi Intercept is  7034
 print("Multi Coefficient is ", mul_reg_model.coef_) #Multi Coefficient is  [-98.5842662   58.47834037 -42.37134541]
 
 
-
 #Check the MetEireann API for weather forecast info
 #Co-ordinates for Dublin City Centre taken from Google Maps
 response = requests.get("http://metwdb-openaccess.ichec.ie/metno-wdb2ts/locationforecast?lat=53.348366;long=-6.254815")
@@ -356,12 +346,8 @@ new_Forecast_df['maxt'] = new_Forecast_df['temperature.@value']
 new_Forecast_df = new_Forecast_df.dropna(axis=0, subset=['temperature.@unit'])
 
 
-
-
-
 # As there is only one Temperature value in the weather API and I have Min and Max on the historc data I will drop one of them from the model.
 # Recreating the multi model here with the one that had the highest correlation which was Max Temp
-
 
 # Now going to run all Feature Variables together in Multiple Linear Regression and compare results
 # Predict using a value for Rainfall
@@ -377,7 +363,7 @@ print("Multi Coefficient is ", mul_reg_model.coef_) #Multi Coefficient is  [-103
 new_Forecast_df["predictions"] = new_Forecast_df[["rain", "maxt"]].apply(lambda s: mul_reg_model.predict(s.values[None])[0], axis=1)
 new_Forecast_df.to_csv('new_Forecast_df.csv')
 
-
+#Graph the Predictions against expected rainfall and expected temperatures
 ax = new_Forecast_df.plot(x="time", y="predictions", legend=False, color="b")
 ax2 = ax.twinx()
 new_Forecast_df.plot(x="time", y="rain", ax=ax2, legend=False, color="r")
