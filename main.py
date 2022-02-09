@@ -226,9 +226,12 @@ print(weekdays_only.head())
 print(weekdays_only.info())
 print(weekdays_only.describe())
 # Building the model
+# Setting X to all features in the dataset except the response variable Num_taken and others that I'm not interested in
 x = weekdays_only.drop(['Num_Taken', 'ind', 'ind.1', 'ind.2', 'gmin', 'soil'], axis=1)
+# Y variable is the response variable Num_Taken. This is what I want to predict eventually
 y = weekdays_only['Num_Taken']
 
+#cycle through the features and create a plot for each to see what the relationship is like
 for col in x.columns:
         if(col != ['Num_Taken']):
                 plt.scatter(x[col],y)
