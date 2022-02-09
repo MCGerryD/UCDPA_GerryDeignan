@@ -338,5 +338,26 @@ Forecast_df = pd.DataFrame(dict_data['weatherdata']['product']['time'])
 new_Forecast_df = pd.concat([Forecast_df.drop(['location'], axis = 1), pd.json_normalize(Forecast_df['location'])], axis= 1)
 print(new_Forecast_df.head())
 print(new_Forecast_df.info())
+new_Forecast_df['precipitation.@value'] = new_Forecast_df['precipitation.@value'].apply(lambda x: 0 if x == 'NaN' else x)
+new_Forecast_df['precipitation.@value'] = pd.to_numeric(new_Forecast_df['precipitation.@value'], downcast="float")
+new_Forecast_df['temperature.@value'] = new_Forecast_df['temperature.@value'].apply(lambda x: 0 if x == 'NaN' else x)
+new_Forecast_df['temperature.@value'] = pd.to_numeric(new_Forecast_df['temperature.@value'], downcast="float")
+
+print(new_Forecast_df.head())
+print(new_Forecast_df.info())
+print(new_Forecast_df['precipitation.@value'])
+print(new_Forecast_df['temperature.@value'])
+
+# As there is only one Temperature value in the weather API and I have Min and Max on the historc data I will drop one of them from the model.
+# Recreating the multi model here with the one that had the highest correlation which was Max Temp
 
 
+# Now going to run all Feature Variables together in Multiple Linear Regression and compare results
+# Predict using a value for Rainfall
+feature_cols = ['rain', 'maxt']
+X = weekdays_only[feature_cols]
+y = weekdays_only.Num_Taken
+mul_reg_model = LinearRegression()
+mul_reg_model.fit(X,y)
+print("Multi Intercept is ", mul_reg_model.intercept_) #Multi Intercept is  7067.568381356538
+print("Multi Coefficient is ", mul_reg_model.coef_) #Multi Coefficient is  [-103.62871156   34.16545022]
