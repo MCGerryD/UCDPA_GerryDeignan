@@ -238,3 +238,34 @@ for col in x.columns:
                 plt.xlabel(col)
                 plt.ylabel('Bikes Taken')
                 plt.show()
+
+feature_cols = ['rain']
+X = weekdays_only[feature_cols]
+y = weekdays_only.Num_Taken
+
+lm = LinearRegression()
+lm.fit(X,y)
+print("Intercept for Rain is ", lm.intercept_) #Intercept for Rain is  7491.34866595658
+print("Coefficiant for Rain is ", lm.coef_) #Coefficiant for Rain is  [-108.54511026]
+
+feature_cols = ['maxt']
+X = weekdays_only[feature_cols]
+y = weekdays_only.Num_Taken
+
+lm = LinearRegression()
+lm.fit(X,y)
+print("Intercept for maxt is ", lm.intercept_)#Intercept for maxt is  6777.0273
+print("Coefficiant for maxt is ", lm.coef_) #Coefficiant for maxt is  [45.20709]
+
+feature_cols = ['mint']
+X = weekdays_only[feature_cols]
+y = weekdays_only.Num_Taken
+
+lm = LinearRegression()
+lm.fit(X,y)
+print("Intercept for mint is ", lm.intercept_) #Intercept for mint is  7340.511
+print("Coefficiant for mint is ", lm.coef_) #Coefficiant for mint is  [-1.9628823]
+
+#From Lecture notes;
+# If COEF is Positive: A unit increase in FEATURE isassociated with a COEFICIENT "unit" increase in RESPONSE
+# If COEF is NEGATIVE: A unit increase in FEATURE is associated with a COEFICIENT "unit" DECREASE in RESPONSE
