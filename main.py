@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import re
 import seaborn as sns
 from scipy import stats
+from sklearn.linear_model import LinearRegression
 
 # Dublin Bikes
 # Dublin Bikes historic data is held in CSV format and does not require a password.
@@ -136,6 +137,8 @@ print(merged_data.head())
 print(merged_data.info())
 print(merged_data.describe())
 
+print(merged_data.isna().sum())
+
 
 # Checking data visually with matplotlib
 # This chart shows peaks and troughs at regular intervals that could potentially
@@ -154,6 +157,9 @@ plt.plot('DATE', 'Num_Taken', data=merged_data, )
 myMask = merged_data['DATE'].dt.dayofweek.isin([5, 6])
 weekdays_only = merged_data[~myMask]
 weekends_only = merged_data[myMask]
+
+
+
 
 
 # Check Weekdays now
@@ -201,3 +207,4 @@ plt.show()
 #response = requests.get("http://metwdb-openaccess.ichec.ie/metno-wdb2ts/locationforecast?lat=53.348366;long=-6.254815")
 #print(response.status_code)
 #print(response.text)
+
