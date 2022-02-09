@@ -32,25 +32,32 @@ dtypes = {'STATION ID':'int', 'TIME':'str'}
 # Going to pass Time as the parse_dates argument to the Pandas read_csv function. This will convert it to date
 parse_dates = ['TIME']
 
-# Read the CSVin using Pandas Read_CSV. Need dayfirst argument to avoid treating it as an american date
-initial_df = pd.read_csv("dublinbikes_20190401_20190701.csv", dtype=dtypes, parse_dates=parse_dates, dayfirst=True)
+# Read the CSV in using Pandas Read_CSV. Need dayfirst argument to avoid treating it as an american date
+# Two files will give me 6 months of data (from 1/1/2019 - 30/6/2019)
+File1 = pd.read_csv("dublinbikes_20190101_20190401.csv", dtype=dtypes, parse_dates=parse_dates, dayfirst=True)
+File2 = pd.read_csv("dublinbikes_20190401_20190701.csv", dtype=dtypes, parse_dates=parse_dates, dayfirst=True)
 
-# Check the file
+# Stack both dataframes on top of each other. Fields are the same so no need to worry about data not lining up
+initial_df = pd.concat([File1, File2], ignore_index=True)
+
+# Sense check the file
 print(initial_df.head())
 print(initial_df.info())
 print(initial_df.describe())
 
 # (1.)
 # To determine number of bikes used each day I need to extract the date from the Time field
-# Using Pandas DatetimeIndex to extract its and store in DATE
+# Using Pandas DatetimeIndex to extract it and store in DATE
 initial_df['DATE'] = pd.DatetimeIndex(initial_df['TIME']).date
+# Formatting the date now into YYYmmdd
 initial_df['DATE'] = pd.to_datetime(initial_df['DATE'], format='%Y-%m-%d')
 # Check new field is as expected
 print(initial_df['DATE'])
 print(initial_df.head())
 print(initial_df.info())
 
-#Sort the dataframe so that I can get the final sum of bike usage for each day (end of day will have the cumulative sum)
+#Sort the dataframe so that I can get the final sum of bike usage for each day (row at the
+# end of day will have the cumulative sum)
 initial_df = initial_df.sort_values(['STATION ID', 'TIME'], ascending=(True, True))
 print(initial_df.head())
 
@@ -60,7 +67,8 @@ print(initial_df.head())
 # subtract the value in Available Bikes from the value in previous row (5 mins before).
 # Each time the difference is negative will be a proxy for the number of bikes taken in that
 # 5 minute window. I am going to assume that the sum of  these negative values for an entire day
-# will be the number of bikes taken in that day
+# will be the number of bikes taken in that day.
+# The Interactions will identify if a bike was either taken or replaced. I'll then just keep the ones taken
 initial_df['Interactions'] = initial_df.groupby(['STATION ID', 'DATE'])['AVAILABLE BIKES'].diff().fillna(0)
 # Sense Check values
 print(initial_df.head())
@@ -76,31 +84,26 @@ print(initial_df['Check_Neg'].max())
 print(initial_df['Check_Neg'].min())
 
 # Num_Taken will be the number of bikes taken by Station per day. I am using the CumSum to work out total
-# Using this means that the last line per station, per day will have the total
-initial_df['Num_Taken']=initial_df.groupby(['STATION ID', 'DATE'])['Check_Neg'].cumsum().fillna(0)
+# Using this means that the last line per station, per day will have the total taen
+initial_df['Num_Taken']=initial_df.groupby(['DATE'])['Check_Neg'].cumsum().fillna(0)
 print(initial_df['Num_Taken'])
 
+
 # Filtering the dataframe to create Summary_DF that will have just the last line by Station ID and Date
+# Its a summary of initial_df grouped by Date
 def filter_last_timevalue(g):
-        return g.groupby(['STATION ID', 'DATE']).last().agg({'Num_Taken':'sum'})
+        return g.groupby(['DATE']).last().agg({'Num_Taken':'sum'})
 
-summary_df = initial_df.groupby(['STATION ID', 'DATE']).apply(filter_last_timevalue)
-
+#Summary_df summarises for each Date
+summary_df = initial_df.groupby(['DATE']).apply(filter_last_timevalue)
 
 #Sense check
 print(summary_df.head())
 print(summary_df.info())
 print(summary_df.describe())
+
 # Reset Index values
 summary_df = summary_df.reset_index(level=0)
-
-# Creating a Average of Num_taken value across all stations for each day
-# This will help me categorise in to a Low, Medium or High later
-summary_df['Daily Average'] = summary_df.groupby('DATE')['Num_Taken'].mean()
-print(summary_df.head())
-print(summary_df.info())
-print(summary_df.describe())
-
 
 # **********************************************************************************************************
 # Weather Data
@@ -113,26 +116,84 @@ print(summary_df.describe())
 
 parse_dates_w = ['date']
 initial_weather = pd.read_csv("dly3923.csv", parse_dates=parse_dates_w,  dayfirst=True, skip_blank_lines=True)
-# Making Date the same as that on the Bikes data so they can bve merged on that as a key
+# Making Date the same as that on the Bikes data so they can be merged on that as a key
 initial_weather['DATE'] = pd.DatetimeIndex(initial_weather['date']).date
 initial_weather['DATE'] = pd.to_datetime(initial_weather['DATE'], format='%Y-%m-%d')
 print(initial_weather.head())
 print(initial_weather.info())
 print(initial_weather.describe())
 
-
-
-
+#Checking dataframe by outputtingto CSV and viewing in Excel
+initial_weather.to_csv('initial_weather.csv')
 
 
 # (2. Merge Historic Bike and Weather data)
 # Merge the summary data with the weather data on DATE and left join to only include values that exist on Bikes data
 # This will discard the obsolete weather data
 merged_data = pd.merge(summary_df, initial_weather, how='left', on='DATE')
+
 print(merged_data.head())
 print(merged_data.info())
 print(merged_data.describe())
 
+
+# Checking data visually with matplotlib
+# This chart shows peaks and troughs at regular intervals that could potentially
+# distort results. I suspected that the peaks would be weekdays and troughs would be weekends
+plt.figure(1)
+plt.title("Number of Bikes Used per Day")
+plt.xlabel("Date")
+plt.ylabel("Number Used")
+plt.plot('DATE', 'Num_Taken', data=merged_data, )
+
+
+# Splitting my dataset into Weekdays and weekends to see if it smooths the data
+# It does make a difference but Bank Holidays are showing in the weekdays
+# Ideally I would add them to the weekend dataframe and keep working days separate
+# dayofweek has numeric values, Mon = 0, Tue = 1, ... Sat = 5 and Sun = 6
+myMask = merged_data['DATE'].dt.dayofweek.isin([5, 6])
+weekdays_only = merged_data[~myMask]
+weekends_only = merged_data[myMask]
+
+
+# Check Weekdays now
+plt.figure(2)
+plt.title("Number of Bikes Used per WeekDay")
+plt.xlabel("Date")
+plt.ylabel("Number Used")
+plt.plot('DATE', 'Num_Taken', data=weekdays_only, )
+#plt.show()
+plt.figure(3)
+plt.title("Number of Bikes Used per Weekend Day")
+plt.xlabel("Date")
+plt.ylabel("Number Used")
+plt.plot('DATE', 'Num_Taken', data=weekends_only, )
+#plt.show()
+
+
+
+
+weekdays_only.to_csv('weekdays_only.csv')
+
+#Investigate correlation between Bike usage on weekdays and rainfall
+#Show the correlation of Rainfall to Bike Usage along with printing the R Value (Seaborn)
+slope, intercept, r_value, p_value, std_err = stats.linregress(weekdays_only['rain'],weekdays_only['Num_Taken'])
+plt.figure(4)
+chart = sns.regplot(weekdays_only['rain'],weekdays_only['Num_Taken'])
+chart.set(title='Number of Bikes Taken on Weekdays vs Rainfall(mm)',ylabel='Number Taken',xlabel='Rainfall(mm)')
+#Print the R Value
+print('The linear coefficient for weekdays is',r_value)
+
+#Investigate correlation between Bike usage on weekdays and rainfall
+#Show the correlation of Rainfall to Bike Usage along with printing the R Value (Seaborn)
+slope, intercept, r_value, p_value, std_err = stats.linregress(weekends_only['rain'],weekends_only['Num_Taken'])
+plt.figure(5)
+chart = sns.regplot(weekends_only['rain'],weekends_only['Num_Taken'])
+chart.set(title='Number of Bikes Taken on Weekends vs Rainfall(mm)',ylabel='Number Taken',xlabel='Rainfall(mm)')
+
+#Print the R Value
+print('The linear coefficient for weekends is',r_value)
+plt.show()
 
 
 #Check the MetEireann API for weather forecast info
@@ -140,11 +201,3 @@ print(merged_data.describe())
 #response = requests.get("http://metwdb-openaccess.ichec.ie/metno-wdb2ts/locationforecast?lat=53.348366;long=-6.254815")
 #print(response.status_code)
 #print(response.text)
-
-#Do a trend graph showing the total usage in the period (Matplotlib)
-plt.figure(0)
-plt.title("Number of Bikes Used per Day")
-plt.xlabel("Date")
-plt.ylabel("Number Used")
-plt.plot('DATE', 'Num_Taken', data=merged_data, )
-plt.show()
