@@ -35,7 +35,7 @@ parse_dates = ['TIME']
 
 # Read the CSV in using Pandas Read_CSV. Need dayfirst argument to avoid treating it as an american date
 # Two files will give me 6 months of data (from 1/1/2019 - 30/6/2019)
-File1 = pd.read_csv("dublinbikes_20190101_20190401.csv", dtype=dtypes, parse_dates=parse_dates, dayfirst=True)
+File1 = pd.read_csv("dublinbikes_20190101_20190401.csv", dtype=dtypes, parse_dates=parse_dates, dayfirst=True )
 File2 = pd.read_csv("dublinbikes_20190401_20190701.csv", dtype=dtypes, parse_dates=parse_dates, dayfirst=True)
 
 # Stack both dataframes on top of each other. Fields are the same so no need to worry about data not lining up
@@ -137,8 +137,22 @@ print(merged_data.head())
 print(merged_data.info())
 print(merged_data.describe())
 
+#Checking if there are missing values in any columns
 print(merged_data.isna().sum())
 
+# Convert Maxt and Mint to Floats
+# The CSV had some blanks where there was no maxt or mint so
+# I have used a lambda function to replace them with zero
+# otherwise pd.to_numeric was failing on the blank
+merged_data['maxt'] = merged_data['maxt'].apply(lambda x: 0 if x == ' ' else x)
+merged_data['maxt'] = pd.to_numeric(merged_data['maxt'], downcast="float")
+merged_data['mint'] = merged_data['mint'].apply(lambda x: 0 if x == ' ' else x)
+merged_data['mint'] = pd.to_numeric(merged_data['mint'], downcast="float")
+# Check
+print(merged_data.head())
+print(merged_data.info())
+print(merged_data.describe())
+merged_data.to_csv('merged_data.csv')
 
 # Checking data visually with matplotlib
 # This chart shows peaks and troughs at regular intervals that could potentially
@@ -208,3 +222,16 @@ plt.show()
 #print(response.status_code)
 #print(response.text)
 
+print(weekdays_only.head())
+print(weekdays_only.info())
+print(weekdays_only.describe())
+# Building the model
+x = weekdays_only.drop(['Num_Taken', 'ind', 'ind.1', 'ind.2', 'gmin', 'soil'], axis=1)
+y = weekdays_only['Num_Taken']
+
+for col in x.columns:
+        if(col != ['Num_Taken']):
+                plt.scatter(x[col],y)
+                plt.xlabel(col)
+                plt.ylabel('Bikes Taken')
+                plt.show()
