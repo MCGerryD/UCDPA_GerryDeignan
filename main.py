@@ -376,3 +376,11 @@ print("Multi Coefficient is ", mul_reg_model.coef_) #Multi Coefficient is  [-103
 #Create a new field call Predictions that will have the predicted number of bikes used based on the multi regression model.
 new_Forecast_df["predictions"] = new_Forecast_df[["rain", "maxt"]].apply(lambda s: mul_reg_model.predict(s.values[None])[0], axis=1)
 new_Forecast_df.to_csv('new_Forecast_df.csv')
+
+
+ax = new_Forecast_df.plot(x="time", y="predictions", legend=False, color="b")
+ax2 = ax.twinx()
+new_Forecast_df.plot(x="time", y="rain", ax=ax2, legend=False, color="r")
+new_Forecast_df.plot(x="time", y="maxt", ax=ax2, legend=False, color="g")
+ax.figure.legend()
+plt.show()
