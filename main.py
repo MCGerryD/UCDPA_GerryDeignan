@@ -213,7 +213,7 @@ chart.set(title='Number of Bikes Taken on Weekends vs Rainfall(mm)',ylabel='Numb
 
 #Print the R Value
 print('The linear coefficient for weekends is',r_value)
-plt.show()
+#plt.show()
 
 
 #Check the MetEireann API for weather forecast info
@@ -239,24 +239,56 @@ for col in x.columns:
                 plt.ylabel('Bikes Taken')
                 plt.show()
 
+#From Lecture notes;
+# If COEF is Positive: A unit increase in FEATURE isassociated with a COEFICIENT "unit" increase in RESPONSE
+# If COEF is NEGATIVE: A unit increase in FEATURE is associated with a COEFICIENT "unit" DECREASE in RESPONSE
+# y = b + mx
+# y = Intercept + Coef X Feature
+
+# Predict using a value for Rainfall
 feature_cols = ['rain']
 X = weekdays_only[feature_cols]
 y = weekdays_only.Num_Taken
-
 lm = LinearRegression()
 lm.fit(X,y)
 print("Intercept for Rain is ", lm.intercept_) #Intercept for Rain is  7491.34866595658
-print("Coefficiant for Rain is ", lm.coef_) #Coefficiant for Rain is  [-108.54511026]
+print("Coefficient for Rain is ", lm.coef_) #Coefficient for Rain is  [-108.54511026]
 
+Prediction_using_rain = pd.DataFrame({'rain':[10]})
+Prediction_using_rain.head()
+print(lm.predict((Prediction_using_rain)))
+
+X_new = pd.DataFrame({'rain': [weekdays_only.rain.min(), weekdays_only.rain.max()]})
+preds = lm.predict(X_new)
+print(preds)
+weekdays_only.plot(kind='scatter', x='rain',y='Num_Taken')
+plt.plot(X_new, preds, c='red', linewidth=2)
+plt.show()
+
+
+
+# Predict using a value for Max Temp
 feature_cols = ['maxt']
 X = weekdays_only[feature_cols]
 y = weekdays_only.Num_Taken
-
 lm = LinearRegression()
 lm.fit(X,y)
 print("Intercept for maxt is ", lm.intercept_)#Intercept for maxt is  6777.0273
-print("Coefficiant for maxt is ", lm.coef_) #Coefficiant for maxt is  [45.20709]
+print("Coefficient for maxt is ", lm.coef_) #Coefficient for maxt is  [45.20709]
 
+Prediction_using_maxt = pd.DataFrame({'maxt':[5]})
+Prediction_using_maxt.head()
+print(lm.predict((Prediction_using_maxt)))
+
+
+X_new = pd.DataFrame({'maxt': [weekdays_only.maxt.min(), weekdays_only.maxt.max()]})
+preds = lm.predict(X_new)
+print(preds)
+weekdays_only.plot(kind='scatter', x='maxt',y='Num_Taken')
+plt.plot(X_new, preds, c='red', linewidth=2)
+plt.show()
+
+# Predict using a value for Min Temp
 feature_cols = ['mint']
 X = weekdays_only[feature_cols]
 y = weekdays_only.Num_Taken
@@ -264,8 +296,21 @@ y = weekdays_only.Num_Taken
 lm = LinearRegression()
 lm.fit(X,y)
 print("Intercept for mint is ", lm.intercept_) #Intercept for mint is  7340.511
-print("Coefficiant for mint is ", lm.coef_) #Coefficiant for mint is  [-1.9628823]
+print("Coefficient for mint is ", lm.coef_) #Coefficient for mint is  [-1.9628823]
+Prediction_using_mint = pd.DataFrame({'mint':[25]})
+Prediction_using_mint.head()
+print(lm.predict((Prediction_using_mint)))
+X_new = pd.DataFrame({'mint': [weekdays_only.mint.min(), weekdays_only.mint.max()]})
+preds = lm.predict(X_new)
+print(preds)
+weekdays_only.plot(kind='scatter', x='mint',y='Num_Taken')
+plt.plot(X_new, preds, c='red', linewidth=2)
+plt.show()
+# Plotting the least Squares Line to see the regression visually
 
-#From Lecture notes;
-# If COEF is Positive: A unit increase in FEATURE isassociated with a COEFICIENT "unit" increase in RESPONSE
-# If COEF is NEGATIVE: A unit increase in FEATURE is associated with a COEFICIENT "unit" DECREASE in RESPONSE
+
+
+
+
+
+
